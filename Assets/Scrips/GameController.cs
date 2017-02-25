@@ -9,16 +9,13 @@ public class GameController : MonoBehaviour {
     public static GameController game;
 
     public GameData data;
+
     public SaveAndLoad saveAndLoad;
     public GameObject highlighter;
 
     public Hex.Type[,] grid;
     public Hex.Type type;
     public List<GameObject> hexes;
-
-    public Text FoodText;
-    public Text StoneText;
-    public Text WoodText;
 
     public int matches;
     public const int maxColumns = 6;
@@ -61,9 +58,7 @@ public class GameController : MonoBehaviour {
 
     void UpdateData()
     {
-        FoodText.text = data.currentFood + " / " + data.maxFood;
-        StoneText.text = data.currentStone + " / " + data.maxStone;
-        WoodText.text = data.currentWood + " / " + data.maxWood;
+        data.UpdateData();
     }	
 	
 	void Update ()
@@ -89,7 +84,10 @@ public class GameController : MonoBehaviour {
         {
             for (col = 0; col < maxColumns; col++)
             {
-                
+                if(grid[row - 1, col] == Hex.Type.Empty)
+                {
+                    //grid[row, col]
+                }
             }
         }
     }
@@ -219,7 +217,7 @@ public class GameController : MonoBehaviour {
 
     public void RemoveMatches(Hex.Type type, List<Vector2> remove)
     {
-        data.Increment(type);
+        data.IncrementResource(type);
         RemoveGameObjectHexes(remove);
         UpdateData();
         needForUpdate = true;

@@ -1,76 +1,42 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
+[Serializable]
 public class GameData {
 
-    public float currentFood;
-    public float valueFood;
-    public float maxFood;
-    public float currentStone;
-    public float valueStone;
-    public float maxStone;
-    public float currentWood;
-    public float valueWood;
-    public float maxWood;
-	
+    public Resources res;
+
     public GameData()
     {
-        currentFood = 0;
-        currentStone = 0;
-        currentWood = 0;
-        maxFood = 100;
-        maxStone = 10;
-        maxWood = 50;
-        valueFood = 1;
-        valueStone = 0.5f;
-        valueWood = 0.75f;
+        res = new Resources();
+        res.ResetValues();
     }
 
-    public void UpdateData(GameData data)
-    {
-        currentFood = data.currentFood;
-        maxFood = data.maxFood;
-        currentStone = data.currentStone;
-        maxStone = data.maxStone;
-        currentWood = data.currentWood;
-        maxWood = data.maxWood;
-    }
-
-    public void Increment(Hex.Type type)
+    public void IncrementResource(Hex.Type type)
     {
         switch (type)
         {
             case Hex.Type.Food:
-                currentFood += valueFood;
+                res.Food.Current += res.Food.Increment;
                 break;
             case Hex.Type.Stone:
-                currentStone += valueStone;
+                res.Stone.Current += res.Stone.Increment;
                 break;
             case Hex.Type.Wood:
-                currentWood += valueWood;
+                res.Wood.Current += res.Wood.Increment;
                 break;
+
             case Hex.Type.Empty:
                 Debug.Log("Empty type removed! How is this even possible!?");
                 break;
             default:
                 break;
         }
-        CheckLimits();
     }
 
-    public void CheckLimits()
+    public void UpdateData()
     {
-        if(currentFood > maxFood)
-        {
-            currentFood = maxFood;
-        }
-        if(currentStone > maxStone)
-        {
-            currentStone = maxStone;
-        }
-        if (currentWood > maxWood)
-        {
-            currentWood = maxWood;
-        }
+        ResourceTextManager.Instance.ChangeValues(res);
     }
 }

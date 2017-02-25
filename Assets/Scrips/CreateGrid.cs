@@ -9,7 +9,7 @@ public class CreateGrid : MonoBehaviour {
     public GameObject hexagon;
     public GameObject newHex;
     public const int maxColumns = 6;
-    public const int maxRows = 20;
+    public const int maxRows = 12;
     public float hexW = 0.5f;
     public float hexH = 1f;
     public List<Sprite> icons;
