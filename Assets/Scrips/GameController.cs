@@ -6,16 +6,16 @@ using System.Collections.Generic;
 
 public class GameController : MonoBehaviour {
 
-    public static GameController game;
+    public static GameController Instance;
 
     public GameData data;
+    public CreateGrid createGrid;
 
     public SaveAndLoad saveAndLoad;
     public GameObject highlighter;
 
-    public Hex.Type[,] grid;
     public Hex.Type type;
-    public List<GameObject> hexes;
+    public GameObject[,] hexes;
 
     public int matches;
     public const int maxColumns = 6;
@@ -25,14 +25,17 @@ public class GameController : MonoBehaviour {
     public List<Vector2> upToRemoval;
     public bool needForUpdate = false;
 
+    public float hexFallSpeed = 0.1f; 
+
     void Awake()
     {
-        if (game == null)
+        hexes = new GameObject[maxRows, maxColumns];
+        if (Instance == null)
         {
             DontDestroyOnLoad(gameObject);
-            game = this;
+            Instance = this;
         }
-        else if (game != this)
+        else if (Instance != this)
         {
             Destroy(gameObject);
         }
@@ -43,7 +46,7 @@ public class GameController : MonoBehaviour {
             LoadGame();
         }
         UpdateData();
-        grid = new Hex.Type[maxRows, maxColumns];
+        createGrid.InitGrid();
     }
 
     public void SaveGame()
@@ -66,11 +69,13 @@ public class GameController : MonoBehaviour {
 
         if (needForUpdate)
         {
-            FallDownHexes();
+            FindHexToFall();
+            StartCoroutine(HexesHaveReachedTarget());
+            needForUpdate = false;
         }
 	}
 
-    void CheckForMatches()
+    public void CheckForMatches()
     {
 
         CheckForStraight();
@@ -78,18 +83,114 @@ public class GameController : MonoBehaviour {
         CheckForUpToDown();
     }
 
-    public void FallDownHexes()
+    public void FindHexToFall()
     {
-        for(row = 1; row < maxRows; row++)
+        for (col = 0; col < maxColumns; col++)
         {
-            for (col = 0; col < maxColumns; col++)
+            GetTargetHexes();
+            SpawnNewHexes();
+            FallDownHexes();
+        }
+    }
+
+    private void SpawnNewHexes()
+    {
+        for (col = 0; col < maxColumns; col++)
+        {
+            for (row = 0; row < maxRows; row++)
             {
-                if(grid[row - 1, col] == Hex.Type.Empty)
+                if(hexes[row, col].GetComponent<Hex>().toBeFilled)
                 {
-                    //grid[row, col]
+                    hexes[row, col] = Instantiate(createGrid.SpawnHex(hexes[row, col].transform.position));
+                    hexes[row, col].SetActive(true);
+                    hexes[row, col].transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().color = Color.blue;
                 }
             }
         }
+    }
+
+    private void GetTargetHexes()
+    {
+        int hexTarget = 0;
+        int swapTarget = maxRows - 1;
+
+        for (int row = 0; row < maxRows; row++)
+        {
+            if(!hexes[row, col].GetComponent<Hex>().toBeFilled)
+            {
+                hexes[row, col].transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().color = Color.magenta;
+                hexes[row, col].GetComponent<Hex>().shouldFall = true;
+                hexes[row, col].GetComponent<Hex>().targetPosition = hexes[hexTarget, col].transform.position;
+                hexes[row, col].GetComponent<Hex>().targetRow = hexTarget;
+                hexTarget++;
+            }
+        }
+
+        for (int row = 0; row < maxRows; row++)
+        {
+            if (hexes[row, col].GetComponent<Hex>().toBeFilled)
+            {
+                hexes[row, col].transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().color = Color.green;
+                hexes[row, col].GetComponent<Hex>().targetPosition = hexes[swapTarget, col].transform.position;
+                hexes[row, col].GetComponent<Hex>().targetRow = swapTarget;
+                
+                swapTarget--;
+            }
+        }
+        this.row = maxRows;
+    }
+
+    private void FallDownHexes()
+    {
+        for (int row = 0; row < maxRows; row++)
+        {
+            if(hexes[row, col].GetComponent<Hex>().shouldFall)
+            {
+                StartCoroutine(FallDownHex(row, col));
+            }
+            else if (hexes[row, col].GetComponent<Hex>().toBeFilled)
+            {
+                hexes[row, col].transform.position = hexes[row, col].GetComponent<Hex>().targetPosition;
+                hexes[row, col].GetComponent<Hex>().hasReachedTarget = true;
+            }
+        }
+    }
+
+    private IEnumerator FallDownHex(int tempRow, int col)
+    {
+        while (Vector3.Distance(hexes[tempRow, col].transform.position, hexes[tempRow, col].GetComponent<Hex>().targetPosition) > 0.02f)
+        {
+            hexes[tempRow, col].transform.position = Vector3.Lerp(hexes[tempRow, col].transform.position, hexes[tempRow, col].GetComponent<Hex>().targetPosition, hexFallSpeed);
+            yield return new WaitForSeconds(0.01f);
+        }
+        hexes[tempRow, col].transform.position = hexes[tempRow, col].GetComponent<Hex>().targetPosition;
+        hexes[tempRow, col].GetComponent<Hex>().shouldFall = false;
+        hexes[tempRow, col].GetComponent<Hex>().row = hexes[tempRow, col].GetComponent<Hex>().targetRow;
+        hexes[tempRow, col].GetComponent<Hex>().hasReachedTarget = true;
+        yield return null;
+    }
+
+    private IEnumerator HexesHaveReachedTarget()
+    {
+        bool reached = false;
+
+        while (!reached)
+        {
+            reached = true;
+            for (col = 0; col < maxColumns; col++)
+            {
+                for (row = 0; row < maxRows; row++)
+                {
+                    if (!hexes[row, col].GetComponent<Hex>().hasReachedTarget)
+                    {
+                        reached = false;
+                    }
+                }
+            }
+            yield return new WaitForSeconds(0.1f);
+        }
+        Debug.Log("All hexes reached their target!");
+        yield return null;
     }
 
     void CheckForStraight()
@@ -100,18 +201,18 @@ public class GameController : MonoBehaviour {
             type = Hex.Type.Empty;
             for (row = 0; row < maxRows; row++)
             {
-                if (grid[row, col] == type)
+                if (hexes[row, col].GetComponent<Hex>().type == type)
                 {
                     matches++;
                     upToRemoval.Add(new Vector2(row, col));
                 }
-                if (grid[row, col] != type || row == maxRows - 1)
+                if (hexes[row, col].GetComponent<Hex>().type != type || row == maxRows - 1)
                 {
                     if (matches >= 3)
                     {
                         RemoveMatches(type, upToRemoval);
                     }
-                    type = grid[row, col];
+                    type = hexes[row, col].GetComponent<Hex>().type;
                     upToRemoval.Clear();
                     upToRemoval.Add(new Vector2(row, col));
                     matches = 1;
@@ -133,18 +234,18 @@ public class GameController : MonoBehaviour {
             {
                 n++;
             }
-            if (grid[n, col] == type)
+            if (hexes[n, col].GetComponent<Hex>().type == type)
             {
                 matches++;
                 upToRemoval.Add(new Vector2(n, col));
             }
-            if (grid[n, col] != type || n == maxRows - 1)
+            if (hexes[n, col].GetComponent<Hex>().type != type || n == maxRows - 1)
             {
                 if (matches >= 3)
                 {
                     RemoveMatches(type, upToRemoval);
                 }
-                type = grid[n, col];
+                type = hexes[n, col].GetComponent<Hex>().type;
                 upToRemoval.Clear();
                 upToRemoval.Add(new Vector2(n, col));
                 matches = 1;
@@ -162,18 +263,18 @@ public class GameController : MonoBehaviour {
                 {
                     n++;
                 }
-                if (grid[n, col] == type)
+                if (hexes[n, col].GetComponent<Hex>().type == type)
                 {
                     matches++;
                     upToRemoval.Add(new Vector2(n, col));
                 }
-                if (grid[n, col] != type || n == maxRows - 1)
+                if (hexes[n, col].GetComponent<Hex>().type != type || n == maxRows - 1)
                 {
                     if (matches >= 3)
                     {
                         RemoveMatches(type, upToRemoval);
                     }
-                    type = grid[n, col];
+                    type = hexes[n, col].GetComponent<Hex>().type;
                     upToRemoval.Clear();
                     upToRemoval.Add(new Vector2(n, col));
                     matches = 1;
@@ -200,20 +301,6 @@ public class GameController : MonoBehaviour {
     {
         highlighter.transform.position = pos;
     }
-    
-    public void UpdateArrays()
-    {
-        int n = 0;
-        for (int i = 0; i < maxRows; i++)
-        {
-            for (int j = 0; j < maxColumns; j++)
-            {
-                grid[i, j] = hexes[n].GetComponent<Hex>().type;
-                n++;
-            }
-        }
-        CheckForMatches();
-    }
 
     public void RemoveMatches(Hex.Type type, List<Vector2> remove)
     {
@@ -236,16 +323,11 @@ public class GameController : MonoBehaviour {
                     if(hex.GetComponent<Hex>().column == pos.y)
                     {
                         removalList.Add(hex);
-                        Destroy(hex);
+                        //hex.SetActive(false);
+                        hex.GetComponent<Hex>().toBeFilled = true;
                     }
                 }
             }
         }
-
-        foreach (GameObject item in removalList)
-        {
-            hexes.Remove(item);
-        }
-
     }
 }

@@ -4,49 +4,44 @@ using System.Collections.Generic;
 
 public class CreateGrid : MonoBehaviour {
 
-    public Hex.Type[,] array;
     public GameObject parent;
     public GameObject hexagon;
     public GameObject newHex;
-    public const int maxColumns = 6;
-    public const int maxRows = 12;
+
+    public const string SORTING_LAYER = "Grid";
     public float hexW = 0.5f;
     public float hexH = 1f;
+    public const float gridOffset = 0.86f;
     public List<Sprite> icons;
     public int matches;
 
-    void Start () {
-        array = new Hex.Type[maxRows, maxColumns];
-        for (int i = 0; i < maxRows; i++)
+    public void InitGrid() {
+
+        for (int row = 0; row < GameController.maxRows; row++)
         {
-            for (int j = 0; j < maxColumns; j++)
+            for (int col = 0; col < GameController.maxColumns; col++)
             {
-                Vector3 pos = new Vector3(parent.transform.position.x + 0.86f * j, parent.transform.position.y + (hexH * i + hexW * j % 1), 0);
-                newHex = Instantiate(hexagon, pos, Quaternion.identity) as GameObject;
-                newHex.transform.SetParent(parent.transform, false);
-                ShuffleGrid();
-                array[i, j] = newHex.GetComponent<Hex>().type;
-                CheckIfMatch(i, j);
-                newHex.GetComponent<Hex>().SetRowAndColumn(i, j);
-                GameController.game.hexes.Add(newHex);
+                Vector3 pos = new Vector3(parent.transform.position.x + gridOffset * col, parent.transform.position.y + (hexH * row + hexW * col % 1), 0);
+                newHex = SpawnHex(pos);
+                newHex.GetComponent<Hex>().SetRowAndColumn(row, col);
+                GameController.Instance.hexes[row, col] = newHex;
             }
         }
-        GameController.game.UpdateArrays();
+        GameController.Instance.CheckForMatches();
 	}
 
-    void ShuffleGrid()
+    public GameObject SpawnHex(Vector3 pos)
     {
+        GameObject hex;
         int random = Random.Range(0, icons.Count);
 
-        newHex.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sprite = icons[random];
-        newHex.GetComponent<Hex>().AssignEnumType(random);
-    }
+        hex = Instantiate(hexagon, pos, Quaternion.identity) as GameObject;
+        hex.transform.SetParent(parent.transform, false);
+        hex.GetComponent<SpriteRenderer>().sortingLayerName = SORTING_LAYER;
+        hex.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sprite = icons[random];
+        hex.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sortingLayerName = SORTING_LAYER;
+        hex.GetComponent<Hex>().AssignEnumType(random);
 
-    void CheckIfMatch(int row, int column)
-    {
-        if(row > 2 || column > 2)
-        {
-
-        }
+        return hex;
     }
 }

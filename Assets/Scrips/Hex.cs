@@ -8,19 +8,28 @@ public class Hex : MonoBehaviour {
     public int row;
     public int column;
     public Vector3 startingPoint;
-    public Vector3 maxDragDistance = new Vector3(1, 1, 0);
+    public Vector3 maxDragDistance = new Vector3(1.25f, 1.25f, 0);
+    public Vector3 targetPosition;
+    public bool shouldFall = false;
+    public bool toBeFilled;
+    public bool hasReachedTarget;
     public bool isDragged;
+    public int targetRow;
+
+    public const string GRID_LAYER = "Grid";
+    public const string HIGH_LAYER = "Highlighter";
 
     void OnMouseEnter()
     {
         //Debug.Log("Entered: " + row + ", " + column + ". Pos: " + this.transform.position);
-        GameController.game.UpdateHighlighter(this.transform.position);
+        GameController.Instance.UpdateHighlighter(this.transform.position);
     }
 
     void OnMouseDown()
     {
         startingPoint = this.transform.position;
         isDragged = true;
+        SetToHighlighterLayer();
     }
 
     void OnMouseDrag()
@@ -34,7 +43,7 @@ public class Hex : MonoBehaviour {
             Vector3 curScreenPoint = new Vector3(Input.mousePosition.x, Input.mousePosition.y, 10);
             Vector3 curPosition = Camera.main.ScreenToWorldPoint(curScreenPoint);
             this.transform.position = curPosition;
-            GameController.game.UpdateHighlighter(this.transform.position);
+            GameController.Instance.UpdateHighlighter(this.transform.position);
             Debug.Log("Hex: " + row + ", " + column + ". Mouse: " + curPosition);
         }
     }
@@ -43,8 +52,9 @@ public class Hex : MonoBehaviour {
     {
         if (isDragged)
         {
+            SetToDefaultLayer();
             this.transform.position = startingPoint;
-            GameController.game.UpdateHighlighter(this.transform.position);
+            GameController.Instance.UpdateHighlighter(this.transform.position);
             isDragged = false;
         }
     }
@@ -75,14 +85,26 @@ public class Hex : MonoBehaviour {
 
     bool IsDraggedTooFar()
     {
-        if(Mathf.Abs(this.transform.position.x - startingPoint.x) > 1)
+        if(Mathf.Abs(this.transform.position.x - startingPoint.x) > maxDragDistance.x)
         {
             return true;
         }
-        else if (Mathf.Abs(this.transform.position.y - startingPoint.y) > 1)
+        else if (Mathf.Abs(this.transform.position.y - startingPoint.y) > maxDragDistance.y)
         {
             return true;
         }
         return false;
+    }
+
+    void SetToHighlighterLayer()
+    {
+        gameObject.GetComponent<SpriteRenderer>().sortingLayerName = HIGH_LAYER;
+        gameObject.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sortingLayerName = HIGH_LAYER;
+    }
+
+    void SetToDefaultLayer()
+    {
+        gameObject.GetComponent<SpriteRenderer>().sortingLayerName = GRID_LAYER;
+        gameObject.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sortingLayerName = GRID_LAYER;
     }
 }

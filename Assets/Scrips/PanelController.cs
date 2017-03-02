@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class PanelController : MonoBehaviour {
 
+    public GameObject grid;
     public GameObject gridPanel;
     public GameObject resourcesPanel;
     public GameObject villagePanel;
@@ -36,11 +37,12 @@ public class PanelController : MonoBehaviour {
 
     public void PanelsReset()
     {
+        grid.SetActive(false);
         gridPanel.SetActive(false);
         resourcesPanel.SetActive(false);
         villagePanel.SetActive(false);
         craftPanel.SetActive(false);
-        GameController.game.highlighter.SetActive(false);
+        GameController.Instance.highlighter.SetActive(false);
     }
 
     public void ButtonPressed(string name)
@@ -52,8 +54,9 @@ public class PanelController : MonoBehaviour {
         {
             case "Grid":
                 gridButton.GetComponent<Image>().color = activeColor;
+                grid.SetActive(true);
                 gridPanel.SetActive(true);
-                GameController.game.highlighter.SetActive(true);
+                GameController.Instance.highlighter.SetActive(true);
                 break;
             case "Resource":
                 resourceButton.GetComponent<Image>().color = activeColor;

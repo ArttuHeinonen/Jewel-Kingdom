@@ -37,6 +37,6 @@ public class GameData {
 
     public void UpdateData()
     {
-        ResourceTextManager.Instance.ChangeValues(res);
+        //ResourceTextManager.Instance.ChangeValues(res);
     }
 }
