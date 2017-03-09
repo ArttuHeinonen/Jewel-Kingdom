@@ -13,21 +13,23 @@ public class GameData {
         res.ResetValues();
     }
 
-    public void IncrementResource(Hex.Type type)
+    public void IncrementResource(Type type)
     {
         switch (type)
         {
-            case Hex.Type.Food:
+            case Type.Food:
                 res.Food.Current += res.Food.Increment;
                 break;
-            case Hex.Type.Stone:
+            case Type.Stone:
                 res.Stone.Current += res.Stone.Increment;
                 break;
-            case Hex.Type.Wood:
+            case Type.Wood:
                 res.Wood.Current += res.Wood.Increment;
                 break;
-
-            case Hex.Type.Empty:
+            case Type.Science:
+                res.Science.Current += res.Science.Increment;
+                break;
+            case Type.Empty:
                 Debug.Log("Empty type removed! How is this even possible!?");
                 break;
             default:

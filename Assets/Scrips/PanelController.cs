@@ -42,7 +42,7 @@ public class PanelController : MonoBehaviour {
         resourcesPanel.SetActive(false);
         villagePanel.SetActive(false);
         craftPanel.SetActive(false);
-        GameController.Instance.highlighter.SetActive(false);
+        GameController.Instance.hexManager.highlighter.SetActive(false);
     }
 
     public void ButtonPressed(string name)
@@ -56,7 +56,7 @@ public class PanelController : MonoBehaviour {
                 gridButton.GetComponent<Image>().color = activeColor;
                 grid.SetActive(true);
                 gridPanel.SetActive(true);
-                GameController.Instance.highlighter.SetActive(true);
+                GameController.Instance.hexManager.highlighter.SetActive(true);
                 break;
             case "Resource":
                 resourceButton.GetComponent<Image>().color = activeColor;

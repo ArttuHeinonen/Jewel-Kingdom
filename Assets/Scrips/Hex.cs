@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
 public class Hex : MonoBehaviour {
 
-	public enum Type : int { Food = 0, Stone = 1, Wood = 2, Empty = 999};
     public Type type;
-    public int row;
-    public int column;
+    public int Row { get; set; }
+    public int Col { get; set; }
     public Vector3 startingPoint;
     public Vector3 maxDragDistance = new Vector3(1.25f, 1.25f, 0);
     public Vector3 targetPosition;
@@ -22,47 +22,47 @@ public class Hex : MonoBehaviour {
     void OnMouseEnter()
     {
         //Debug.Log("Entered: " + row + ", " + column + ". Pos: " + this.transform.position);
-        GameController.Instance.UpdateHighlighter(this.transform.position);
+        //GameController.Instance.hexManager.UpdateHighlighter(this.transform.position);
     }
 
-    void OnMouseDown()
-    {
-        startingPoint = this.transform.position;
-        isDragged = true;
-        SetToHighlighterLayer();
-    }
+    //void OnMouseDown()
+    //{
+    //    startingPoint = this.transform.position;
+    //    isDragged = true;
+    //    SetToHighlighterLayer();
+    //}
 
-    void OnMouseDrag()
-    {
-        if (IsDraggedTooFar())
-        {
-            OnMouseUp();
-        }
-        else if(isDragged)
-        {
-            Vector3 curScreenPoint = new Vector3(Input.mousePosition.x, Input.mousePosition.y, 10);
-            Vector3 curPosition = Camera.main.ScreenToWorldPoint(curScreenPoint);
-            this.transform.position = curPosition;
-            GameController.Instance.UpdateHighlighter(this.transform.position);
-            Debug.Log("Hex: " + row + ", " + column + ". Mouse: " + curPosition);
-        }
-    }
+    //void OnMouseDrag()
+    //{
+    //    if (IsDraggedTooFar())
+    //    {
+    //        OnMouseUp();
+    //    }
+    //    else if(isDragged)
+    //    {
+    //        Vector3 curScreenPoint = new Vector3(Input.mousePosition.x, Input.mousePosition.y, 10);
+    //        Vector3 curPosition = Camera.main.ScreenToWorldPoint(curScreenPoint);
+    //        this.transform.position = curPosition;
+    //        GameController.Instance.hexManager.UpdateHighlighter(this.transform.position);
+    //        Debug.Log("Hex: " + Row + ", " + Col + ". Mouse: " + curPosition);
+    //    }
+    //}
 
-    void OnMouseUp()
-    {
-        if (isDragged)
-        {
-            SetToDefaultLayer();
-            this.transform.position = startingPoint;
-            GameController.Instance.UpdateHighlighter(this.transform.position);
-            isDragged = false;
-        }
-    }
+    //void OnMouseUp()
+    //{
+    //    if (isDragged)
+    //    {
+    //        SetToDefaultLayer();
+    //        this.transform.position = startingPoint;
+    //        GameController.Instance.hexManager.UpdateHighlighter(this.transform.position);
+    //        isDragged = false;
+    //    }
+    //}
 
     public void SetRowAndColumn(int r, int c)
     {
-        row = r;
-        column = c;
+        Row = r;
+        Col = c;
     }
 
     public void AssignEnumType(int givenType)
@@ -77,6 +77,9 @@ public class Hex : MonoBehaviour {
                 break;
             case 2:
                 this.type = Type.Wood;
+                break;
+            case 3:
+                this.type = Type.Science;
                 break;
             default:
                 break;
@@ -106,5 +109,36 @@ public class Hex : MonoBehaviour {
     {
         gameObject.GetComponent<SpriteRenderer>().sortingLayerName = GRID_LAYER;
         gameObject.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sortingLayerName = GRID_LAYER;
+    }
+
+    public void Assign(Type type, int row, int column)
+    {
+
+        if (type == Type.Empty)
+            throw new ArgumentException("type");
+
+        this.Col = column;
+        this.Row = row;
+        this.type = type;
+    }
+
+    public bool IsSameType(Hex otherHex)
+    {
+        if(this.type == otherHex.type)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public static void SwapColumnRow(Hex a, Hex b)
+    {
+        int temp = a.Row;
+        a.Row = b.Row;
+        b.Row = temp;
+
+        temp = a.Col;
+        a.Col = b.Col;
+        b.Col = temp;
     }
 }

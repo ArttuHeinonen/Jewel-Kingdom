@@ -8,6 +8,7 @@ public class Resources {
     private Resource wood;
     private Resource stone;
     private Resource gold;
+    private Resource science;
 
 
     #region Properties
@@ -62,6 +63,19 @@ public class Resources {
             gold = value;
         }
     }
+
+    public Resource Science
+    {
+        get
+        {
+            return science;
+        }
+
+        set
+        {
+            science = value;
+        }
+    }
     #endregion
 
     public Resources()
@@ -70,6 +84,7 @@ public class Resources {
         wood = new Resource();
         stone = new Resource();
         gold = new Resource();
+        science = new Resource();
     }
 
     public void ResetValues()
@@ -100,5 +115,12 @@ public class Resources {
         gold.Increment = 1;
         gold.Production = 0;
         gold.Bonus = 1.0d;
+
+        science.Name = "Science";
+        science.Current = 0;
+        science.MaxValue = 200;
+        science.Increment = 1;
+        science.Production = 0;
+        science.Bonus = 1.0d;
     }
 }
